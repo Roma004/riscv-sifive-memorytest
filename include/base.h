@@ -1,17 +1,13 @@
 #ifndef BASE_H
 #define BASE_H
 
+#include "stdint.h"
+#include "stddef.h"
 
-typedef unsigned long size_t;
 
-typedef volatile unsigned int       __u16;  // sifive word type
-typedef volatile unsigned long      __u32;  // sifive dword type
-typedef volatile unsigned long long __u64;  // sifive qword type
-typedef volatile unsigned char      __u8;   // sifive byte type
-
-#define GET_B(addr) (*(__u8 *)(addr))
-#define GET_W(addr) (*(__u32 *)(addr))
-#define GET_DW(addr) (*(__u64 *)(addr))
+#define GET_B(addr) (*(uint8_t *)(addr))
+#define GET_W(addr) (*(uint32_t *)(addr))
+#define GET_DW(addr) (*(uint64_t *)(addr))
 
 typedef enum fault_t {
 	ok = 0,

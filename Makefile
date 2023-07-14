@@ -1,22 +1,32 @@
-RISCV_CROSS_BIN = ../riscv-compiler/bin
+NBIT = 64
 
-CC = $(RISCV_CROSS_BIN)/riscv64-unknown-elf-gcc
-GDB = $(RISCV_CROSS_BIN)/riscv64-unknown-elf-gdb
+RISCV_CROSS_BIN = ../riscv-compiler$(NBIT)/bin
+
+CC = $(RISCV_CROSS_BIN)/riscv$(NBIT)-unknown-elf-gcc
+GDB = $(RISCV_CROSS_BIN)/riscv$(NBIT)-unknown-elf-gdb
+
 
 INCLUDE_DIR = ./include
 SRC_DIR = ./src
 OUTPUT = ./output/asd
 
-LD_FILE = main.ld
+LD_FILE = $(NBIT)bit-main.ld
 ASM_FILES = crt0.s
 C_FILES = main.c $(SRC_DIR)/*.c
 
-C_FALGS = -ffreestanding -nostartfiles -nostdlib -nodefaultlibs -mabi=lp64 -mcmodel=medany -O0
+C_FALGS = -ffreestanding -nostartfiles -nodefaultlibs -mcmodel=medany -O0
+
+ifeq ($(NBIT),32)
+	C_FALGS += -mabi=ilp32
+else
+	C_FALGS += -mabi=lp64
+endif
+
 LD_FLAGS = -Wl,-T,$(LD_FILE) -Wl,--gc-sections
 
 DEBUG_PORT = 1234
 
-QEMU = qemu-system-riscv64
+QEMU = qemu-system-riscv$(NBIT)
 QEMU_DEBUG_OPTIONS = -gdb tcp::$(DEBUG_PORT) -S
 QEMU_FLAGS = -nographic -machine sifive_u -bios none -kernel $(OUTPUT) -m 128M
 

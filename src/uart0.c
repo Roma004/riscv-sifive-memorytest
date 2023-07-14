@@ -1,10 +1,11 @@
 #include "uart0.h"
+#include <stdint.h>
 
-void uart_write_reg(uart_t *uart, size_t reg, unsigned long val) {
-	*(volatile unsigned int *)(uart->base_addr + reg) = val;
+void uart_write_reg(uart_t *uart, size_t reg, uint32_t val) {
+	*(volatile uint32_t *)(uart->base_addr + reg) = val;
 }
 
-unsigned long uart_read_reg(uart_t *uart, size_t reg) {
+uint32_t uart_read_reg(uart_t *uart, size_t reg) {
 	return *(volatile unsigned int *)(uart->base_addr + reg);
 }
 
@@ -20,6 +21,7 @@ char uart_is_transmit_full(uart_t *uart) {
 
 
 void uart_send_byte(uart_t *uart, char to_send) {
+	// TODO Fix 0 writing issue
 	while (1) {
 		if (!uart_is_transmit_full(uart)) {
 			uart_write_reg(uart, REG_TXDATA, to_send);

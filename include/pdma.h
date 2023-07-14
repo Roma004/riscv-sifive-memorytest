@@ -41,7 +41,7 @@ typedef struct __pdma_chain_descriptor {
     int chan_id;
 
     pdma_conf_t next_conf;
-    __u64 next_nbytes;
+    uint64_t next_nbytes;
     void *next_write_ptr;
     void *next_read_ptr;
 } pdma_chain_t;

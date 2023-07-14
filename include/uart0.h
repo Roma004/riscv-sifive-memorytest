@@ -23,9 +23,6 @@
 #define REG_TXDATA_FULL  (1 << 31)
 #define REG_RXDATA_EMPTY (1 << 31)
 
-
-// max tries of checking for a byte to arrive
-#define LOOP_MAX 1000
 #define REG_TOTAL_SIZE (7 * 4) // 7 x 32-bit registers
 
 #include "base.h"
@@ -36,8 +33,8 @@ typedef struct UART {
 
 
 void uart_init(uart_t *uart);
-void uart_write_reg(uart_t *uart, size_t reg, unsigned long val);
-unsigned long uart_read_reg(uart_t *uart, size_t reg);
+void uart_write_reg(uart_t *uart, size_t reg, uint32_t val);
+uint32_t uart_read_reg(uart_t *uart, size_t reg);
 char uart_is_transmit_full(uart_t *uart);
 void uart_send_byte(uart_t *uart, char to_send);
 void uart_puts(uart_t *uart, char *str);
