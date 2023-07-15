@@ -17,9 +17,9 @@ C_FILES = main.c $(SRC_DIR)/*.c
 C_FALGS = -ffreestanding -nostartfiles -nodefaultlibs -mcmodel=medany
 
 ifeq ($(NBIT),32)
-	C_FALGS += -mabi=ilp32
+C_FALGS += -mabi=ilp32
 else
-	C_FALGS += -mabi=lp64
+C_FALGS += -mabi=lp64
 endif
 
 LD_FLAGS = -Wl,-T,$(LD_FILE) -Wl,--gc-sections

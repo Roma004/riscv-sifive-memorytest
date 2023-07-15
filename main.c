@@ -10,45 +10,50 @@ int main() {
 
 #define print(str) uart_puts(&uart, str)
 
-	char s[36] = "Awcrnf89ny4-2irmgh2-f7834sdasdasd!\n";
-	char res[36] = {};
+	// assume filling RAM with 0b01010101 (0x55 char'U') bytes
+	// will copy 64 bytes per transfer.
+	char pattern[33] = "UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU";
+	char buffer[32] = {};
 
-	uint32_t next_conf = 0xFF000008;
-
-	pdma_chain_t pdma = {
-		.base_addr      = PDMA_BASE_ADDR,
-		.chan_id        = 1,
-		.next_conf      = next_conf,
-		.next_nbytes    = 36,
-		.next_write_ptr = res,
-		.next_read_ptr  = s
+	pdma_conf_t next_config = {
+		.conf      = PDMA_FULL_SPEED,
+		.nbytes    = 32,
+		.read_ptr  = (uint64_t)pattern,
+		.write_ptr = (uint64_t)buffer
 	};
 
-	print(s);
+	pdma_chain_t pdma;
 
-	if (pdma_claim(&pdma)) {   // reserve pdma chain 0
-		print("PDMA claimed\n");
-	} else {
-		print("Unable to claim PDMA. exiting\n");
+	char success = 0;
+	for (int chain_id = 0; chain_id < 4; ++chain_id) {
+		pdma = pdma_init(PDMA_BASE_ADDR, chain_id);
+		if (!pdma_claim(&pdma)) {
+			print("Unable to claim pdma, continue with next channel\n");
+			continue;
+		}
+		success = 1;
+		break;
+	}
+	if (!success) {
+		print("Unable to claim pdma (all channels in use)\n");
 		return 1;
 	}
 
-	
+	print("Channel claimed. Configuring transfer\n");
+
+	pdma.next_config = next_config;
+
 	pdma_run(&pdma);    // start bytes transfer
 
 	print("PDMA transfer start\n");
 
-	pdma_wait_transfer(&pdma);  // wait until transfer ends, to check the result
+	pdma_unclaim(&pdma);  // wait until transfer ends, and unclaim channel
 
-	print("PDMA transfer end\n");
+	print("PDMA transfer end. result of copy:\n");
 
-	// just write string we copied in previous step to uart
-	print("string:\n");
-	uart_puts(&uart, res);
+	uart_puts(&uart, buffer);
 
 	print("end.\n");
-
-	// uart_puts(&uart, s);
 
 #undef print
 

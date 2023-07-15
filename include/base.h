@@ -3,11 +3,13 @@
 
 #include "stdint.h"
 #include "stddef.h"
+#include <stdlib.h>
 
 
-#define GET_B(addr) (*(uint8_t *)(addr))
-#define GET_W(addr) (*(uint32_t *)(addr))
-#define GET_DW(addr) (*(uint64_t *)(addr))
+
+#define GET_B(addr) (*(volatile uint8_t *)(addr))
+#define GET_W(addr) (*(volatile uint32_t *)(addr))
+#define GET_DW(addr) (*(volatile uint64_t *)(addr))
 
 typedef enum fault_t {
 	ok = 0,

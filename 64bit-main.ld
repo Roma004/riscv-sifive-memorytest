@@ -7,7 +7,7 @@ OUTPUT_FORMAT("elf64-littleriscv", "elf64-littleriscv",
 	      "elf64-littleriscv")
 OUTPUT_ARCH(riscv)
 
-/* need to control stack configuration */
+/* need to control RAM configuration */
 MEMORY
 {
   /* qemu-system-risc64 sifive_u machine */
