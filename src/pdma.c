@@ -10,31 +10,20 @@ inline char pdma_get_control_bit(pdma_chain_t *pdma, enum __pdma_control bit) {
 
 void pdma_write_control_bit(pdma_chain_t *pdma, enum __pdma_control bit) {
     uint32_t val = GET_W(PDMA_CONTROL_REG(pdma->base_addr, pdma->chan_id));
-    uint32_t *reg = PDMA_CONTROL_REG(pdma->base_addr, pdma->chan_id);
+    volatile uint32_t *reg = PDMA_CONTROL_REG(pdma->base_addr, pdma->chan_id);
     *reg = val | (1 << bit);
-}
-
-
-// need to write pdma descriptor's next_conf ctruct to PDMA register
-void pdma_write_next_config(pdma_chain_t *pdma) {
-    uint32_t wr = 
-        ((uint32_t)(pdma->next_conf.repeat & 0x1) << 2)  +
-        ((uint32_t)(pdma->next_conf.order  & 0x1) << 3)  +
-        ((uint32_t)(pdma->next_conf.wsize  & 0x7) << 24) +
-        ((uint32_t)(pdma->next_conf.rsize  & 0x7) << 28) ;
-    uint32_t *regptr = PDMA_NEXT_CONF_REG(pdma->base_addr, pdma->chan_id);
-    *regptr = wr;
 }
 
 
 // need to syncronize next transfer configuration from pdma_chain_t struct with PDMA registers.
 // auto write next config
 void pdma_sync_next(pdma_chain_t *pdma) {
-    pdma_write_next_config(pdma);
-    uint64_t *nbytes_reg = PDMA_NEXT_BYTES_REG(pdma->base_addr, pdma->chan_id),
+    volatile uint32_t *config = PDMA_NEXT_CONF_REG(pdma->base_addr, pdma->chan_id);
+    volatile uint64_t *nbytes_reg = PDMA_NEXT_BYTES_REG(pdma->base_addr, pdma->chan_id),
           *dest_reg   = PDMA_NEXT_DEST_REG(pdma->base_addr, pdma->chan_id),
           *src_reg    = PDMA_NEXT_SRC_REG(pdma->base_addr, pdma->chan_id);
 
+    *config     = pdma->next_conf;
     *nbytes_reg = pdma->next_nbytes;
     *dest_reg   = (uint64_t)(size_t)pdma->next_write_ptr;
     *src_reg    = (uint64_t)(size_t)pdma->next_read_ptr;

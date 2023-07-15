@@ -13,18 +13,15 @@ int main() {
 	char s[36] = "Awcrnf89ny4-2irmgh2-f7834sdasdasd!\n";
 	char res[36] = {};
 
-	// char asd[5] = {sizeof(char)+'0', sizeof(short)+'0', sizeof(int)+'0', sizeof(long)+'0', 0};
-	// uart_puts(&uart, asd);
-
-	pdma_conf_t next_conf = {0, 0, 6, 0};
+	uint32_t next_conf = 0xFF000008;
 
 	pdma_chain_t pdma = {
-		/* base addr */ PDMA_BASE_ADDR,
-		/* chain id  */ 1,
-		/* next conf */ next_conf,
-		/* nbytes    */ 36,
-		/* dest      */ res,
-		/* src       */ s
+		.base_addr      = PDMA_BASE_ADDR,
+		.chan_id        = 1,
+		.next_conf      = next_conf,
+		.next_nbytes    = 36,
+		.next_write_ptr = res,
+		.next_read_ptr  = s
 	};
 
 	print(s);

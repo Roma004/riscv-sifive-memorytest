@@ -2,11 +2,12 @@
 #include <stdint.h>
 
 void uart_write_reg(uart_t *uart, size_t reg, uint32_t val) {
-	*(volatile uint32_t *)(uart->base_addr + reg) = val;
+	volatile uint32_t *reg_ptr = uart->base_addr + reg;
+	*reg_ptr = val;
 }
 
 uint32_t uart_read_reg(uart_t *uart, size_t reg) {
-	return *(volatile unsigned int *)(uart->base_addr + reg);
+	return *(uint32_t *)(uart->base_addr + reg);
 }
 
 void uart_init(uart_t *uart) {
@@ -15,7 +16,7 @@ void uart_init(uart_t *uart) {
 }
 
 char uart_is_transmit_full(uart_t *uart) {
-	unsigned long val = uart_read_reg(uart, REG_TXDATA);
+	volatile uint32_t val = uart_read_reg(uart, REG_TXDATA);
 	return !!(val & REG_TXDATA_FULL);
 }
 
