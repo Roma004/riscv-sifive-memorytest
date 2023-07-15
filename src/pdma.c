@@ -17,6 +17,10 @@ pdma_chain_t pdma_init(void *base_addr, int chan_id) {
     return res;
 }
 
+
+#pragma GCC push_options
+#pragma GCC optimize ("O0")
+
 void pdma_control_get(pdma_chain_t *pdma) {
     volatile uint32_t *control_reg = PDMA_CONTROL_REG(pdma->base_addr, pdma->chan_id);
     GET_W(&pdma->control) = *control_reg;
@@ -63,6 +67,8 @@ void pdma_config_write_next(pdma_chain_t *pdma) {
     *next_dest_reg  = pdma->next_config.write_ptr;
     *next_src_reg   = pdma->next_config.read_ptr;
 }
+
+#pragma GCC pop_options
 
 
 char pdma_claim(pdma_chain_t *pdma) {

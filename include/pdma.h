@@ -2,7 +2,6 @@
 #include <stdint.h>
 
 #define __PDMA_CHANNEL_OFFSET 0x8_0000
-// #define __PDMA_REGS_OFFSET 0x80000
 
 
 // rw registers
@@ -20,17 +19,6 @@
 
 #define PDMA_FULL_SPEED 0xFF000008
 
-
-// TODO use bit-filed instead https://www.geeksforgeeks.org/bit-fields-c/
-// control bits mapping
-// enum __pdma_control {
-//     pdma_control_claim   = 0,
-//     pdma_control_run     = 1,
-//     pdma_control_doneIe  = 13,
-//     pdma_control_errorIe = 14,
-//     pdma_control_done    = 30,
-//     pdma_control_error   = 31
-// };
 
 typedef struct __pdma_control {
     uint8_t claim:   1; // 0 bit

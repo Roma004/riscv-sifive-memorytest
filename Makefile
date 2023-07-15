@@ -14,12 +14,12 @@ LD_FILE = $(NBIT)bit-main.ld
 ASM_FILES = crt0.s
 C_FILES = main.c $(SRC_DIR)/*.c
 
-C_FALGS = -ffreestanding -nostartfiles -nodefaultlibs -mcmodel=medany
+C_FALGS = -ffreestanding -nostartfiles -mcmodel=medany
 
 ifeq ($(NBIT),32)
 C_FALGS += -mabi=ilp32
 else
-C_FALGS += -mabi=lp64
+C_FALGS += -march=rv64gc -mabi=lp64d
 endif
 
 LD_FLAGS = -Wl,-T,$(LD_FILE) -Wl,--gc-sections
@@ -33,7 +33,7 @@ QEMU_FLAGS = -nographic -machine sifive_u -bios none -kernel $(OUTPUT) -m 128M
 
 .PHONY: build
 build:
-	$(CC) $(C_FALGS) $(LD_FLAGS) -I$(INCLUDE_DIR) $(ASM_FILES) $(C_FILES) -o $(OUTPUT) -O0
+	$(CC) $(C_FALGS) $(LD_FLAGS) -I$(INCLUDE_DIR) $(ASM_FILES) $(C_FILES) -o $(OUTPUT) -O2
 
 
 .PHONY: build-debug

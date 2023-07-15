@@ -4,7 +4,7 @@
 #include "stdint.h"
 #include "stddef.h"
 #include <stdlib.h>
-
+#include <string.h>
 
 
 #define GET_B(addr) (*(volatile uint8_t *)(addr))

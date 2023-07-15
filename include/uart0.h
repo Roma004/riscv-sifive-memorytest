@@ -36,7 +36,7 @@ void uart_init(uart_t *uart);
 void uart_write_reg(uart_t *uart, size_t reg, uint32_t val);
 uint32_t uart_read_reg(uart_t *uart, size_t reg);
 char uart_is_transmit_full(uart_t *uart);
-void uart_send_byte(uart_t *uart, char to_send);
+void uart_putc(uart_t *uart, char to_send);
 void uart_puts(uart_t *uart, char *str);
 
 
