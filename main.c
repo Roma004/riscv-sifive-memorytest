@@ -12,12 +12,12 @@ int main() {
 
 	// assume filling RAM with 0b01010101 (0x55 char'U') bytes
 	// will copy 64 bytes per transfer.
-	char pattern[33] = "UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU";
-	char buffer[32] = {};
+	char pattern[65] = "UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU";
+	char buffer[65] = {};
 
 	pdma_conf_t next_config = {
 		.conf      = PDMA_FULL_SPEED,
-		.nbytes    = 32,
+		.nbytes    = 64,
 		.read_ptr  = (uint64_t)pattern,
 		.write_ptr = (uint64_t)buffer
 	};
