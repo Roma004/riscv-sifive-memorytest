@@ -12,7 +12,7 @@ LD_FILE = 64bit-main.ld
 ASM_FILES = crt0.s
 C_FILES = main.c $(SRC_DIR)/*.c
 
-C_FALGS = -ffreestanding -nostartfiles -mcmodel=medany -march=rv64gc -mabi=lp64d
+C_FALGS = -ffreestanding -nostartfiles -mcmodel=medany -march=rv64gc -mabi=lp64
 
 LD_FLAGS = -Wl,-T,$(LD_FILE) -Wl,--gc-sections
 

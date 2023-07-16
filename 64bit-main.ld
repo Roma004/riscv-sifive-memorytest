@@ -21,6 +21,8 @@ SECTIONS
   /* Read-only sections, merged into text segment: */
   PROVIDE (__executable_start = SEGMENT_START("text-segment", 0x10000)); . = SEGMENT_START("text-segment", 0x10000) + SIZEOF_HEADERS;
   PROVIDE (__stack_top = ORIGIN(RAM) + LENGTH(RAM));
+  PROVIDE (__ram_origin = ORIGIN(RAM));
+  PROVIDE (__ram_length = LENGTH(RAM));
   PROVIDE (__uart_base_addr = 0x10010000);
   PROVIDE (__pdma_base_addr = 0x3000000);
   .interp         : { *(.interp) }

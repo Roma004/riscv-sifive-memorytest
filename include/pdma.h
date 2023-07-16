@@ -46,43 +46,43 @@ typedef struct __pdma_chain_descriptor {
     pdma_control_t control;
     pdma_conf_t next_config;    
     pdma_conf_t curr_config;    
-} pdma_chain_t;
+} pdma_chann_t;
 
-pdma_chain_t pdma_init(void *base_addr, int chan_id);
+pdma_chann_t pdma_init(void *base_addr, int chan_id);
 
 // need to claim PDMA channel. Returns False, if unable to claim for some reason.
-char pdma_claim(pdma_chain_t *pdma);
+char pdma_claim(pdma_chann_t *pdma);
 
 // need to free (unclaim) PDMA channel.
 // Waits until transfer end, if has runing one
-void pdma_unclaim(pdma_chain_t *pdma);
+void pdma_unclaim(pdma_chann_t *pdma);
 
 
 
 // refreshes pdma->control
-void pdma_control_get(pdma_chain_t *pdma);
+void pdma_control_get(pdma_chann_t *pdma);
 
 // writes pdma->control to PDMA control register
-void pdma_control_write(pdma_chain_t *pdma);
+void pdma_control_write(pdma_chann_t *pdma);
 
 
 
 // refreshes pdma->next_config
-void pdma_config_get_next(pdma_chain_t *pdma);
+void pdma_config_get_next(pdma_chann_t *pdma);
 
 // refreshes pdma->curr_config
-void pdma_config_get_curr(pdma_chain_t *pdma);
+void pdma_config_get_curr(pdma_chann_t *pdma);
 
 // writes pdma->next_config to PDMA Next Config register
-void pdma_config_write_next(pdma_chain_t *pdma);
+void pdma_config_write_next(pdma_chann_t *pdma);
 
 
 
 // waits until transfer complete
-void pdma_wait_transfer(pdma_chain_t *pdma);
+void pdma_wait_transfer(pdma_chann_t *pdma);
 
 // need to run pdma transfer.
 // Automatically syncronizes next registers.
 // Automatically waits until prewious transfer end.
 // assumes, pdma descriptor, intialised corectly.
-void pdma_run(pdma_chain_t *pdma);
+void pdma_run(pdma_chann_t *pdma);

@@ -4,8 +4,8 @@
 #include <stdint.h>
 
 
-pdma_chain_t pdma_init(void *base_addr, int chan_id) {
-    pdma_chain_t res = {
+pdma_chann_t pdma_init(void *base_addr, int chan_id) {
+    pdma_chann_t res = {
         .base_addr = base_addr,
         .chan_id   = chan_id
     };
@@ -21,17 +21,17 @@ pdma_chain_t pdma_init(void *base_addr, int chan_id) {
 #pragma GCC push_options
 #pragma GCC optimize ("O0")
 
-void pdma_control_get(pdma_chain_t *pdma) {
+void pdma_control_get(pdma_chann_t *pdma) {
     volatile uint32_t *control_reg = PDMA_CONTROL_REG(pdma->base_addr, pdma->chan_id);
     GET_W(&pdma->control) = *control_reg;
 }
 
-void pdma_control_write(pdma_chain_t *pdma) {
+void pdma_control_write(pdma_chann_t *pdma) {
     volatile uint32_t *control_reg = PDMA_CONTROL_REG(pdma->base_addr, pdma->chan_id);
     *control_reg = GET_W(&pdma->control);
 }
 
-void pdma_config_get_next(pdma_chain_t *pdma) {
+void pdma_config_get_next(pdma_chann_t *pdma) {
     volatile pdma_conf_t *conf_reg = PDMA_NEXT_CONF_REG(pdma->base_addr, pdma->chan_id);
     pdma->next_config = *conf_reg;
 
@@ -45,7 +45,7 @@ void pdma_config_get_next(pdma_chain_t *pdma) {
     pdma->next_config.read_ptr  = *next_src_reg;
 }
 
-void pdma_config_get_curr(pdma_chain_t *pdma) {
+void pdma_config_get_curr(pdma_chann_t *pdma) {
     volatile uint32_t *curr_conf_reg  = PDMA_CURR_CONF_REG(pdma->base_addr, pdma->chan_id);
     volatile uint64_t *curr_bytes_reg = PDMA_CURR_BYTES_REG(pdma->base_addr, pdma->chan_id),
                       *curr_dest_reg  = PDMA_CURR_DEST_REG(pdma->base_addr, pdma->chan_id),
@@ -57,7 +57,7 @@ void pdma_config_get_curr(pdma_chain_t *pdma) {
 }
 
 
-void pdma_config_write_next(pdma_chain_t *pdma) {
+void pdma_config_write_next(pdma_chann_t *pdma) {
     volatile uint32_t *next_conf_reg  = PDMA_NEXT_CONF_REG(pdma->base_addr, pdma->chan_id);
     volatile uint64_t *next_bytes_reg = PDMA_NEXT_BYTES_REG(pdma->base_addr, pdma->chan_id),
                       *next_dest_reg  = PDMA_NEXT_DEST_REG(pdma->base_addr, pdma->chan_id),
@@ -71,7 +71,7 @@ void pdma_config_write_next(pdma_chain_t *pdma) {
 #pragma GCC pop_options
 
 
-char pdma_claim(pdma_chain_t *pdma) {
+char pdma_claim(pdma_chann_t *pdma) {
     pdma_control_get(pdma); // refresh current control register state
     if (pdma->control.run) 
         return 0;
@@ -82,7 +82,7 @@ char pdma_claim(pdma_chain_t *pdma) {
     return 1;
 }
 
-void pdma_unclaim(pdma_chain_t *pdma) {
+void pdma_unclaim(pdma_chann_t *pdma) {
     pdma_wait_transfer(pdma);
     
     pdma->control.claim = 0;
@@ -90,7 +90,7 @@ void pdma_unclaim(pdma_chain_t *pdma) {
 }
 
 
-void pdma_wait_transfer(pdma_chain_t *pdma) {
+void pdma_wait_transfer(pdma_chann_t *pdma) {
     while (1) {
         pdma_control_get(pdma);
         if (!pdma->control.run) break;
@@ -101,7 +101,7 @@ void pdma_wait_transfer(pdma_chain_t *pdma) {
 // Automatically syncronizes next registers.
 // Automatically waits until prewious transfer end.
 // assumes, pdma descriptor, intialised corectly.
-void pdma_run(pdma_chain_t *pdma) {
+void pdma_run(pdma_chann_t *pdma) {
     pdma_config_write_next(pdma);
 
     pdma_wait_transfer(pdma);
