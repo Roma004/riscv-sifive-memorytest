@@ -11,12 +11,6 @@
 #define GET_W(addr) (*(volatile uint32_t *)(addr))
 #define GET_DW(addr) (*(volatile uint64_t *)(addr))
 
-typedef enum fault_t {
-	ok = 0,
-	size_too_small,
-	tx_not_empty,
-	data_not_ready
-} fault_t;
 
 // defined in LD script
 extern volatile const unsigned char *__uart_base_addr;

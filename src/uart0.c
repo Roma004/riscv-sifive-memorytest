@@ -37,7 +37,7 @@ uart_t uart_init(void *base_addr) {
 	uart_write_reg(&res, REG_TXCTRL, REG_TXCTRL_TXCNT | REG_TXCTRL_TXEN);
 	uart_write_reg(&res, REG_RXCTRL, REG_RXCTRL_RXCNT | REG_RXCTRL_RXEN);
 
-	// crutch for fixing firs printig symbol issues
+	// crutch for fixing first printig symbol issues
 	uart_putc(&res, 0);
 
 	return res;

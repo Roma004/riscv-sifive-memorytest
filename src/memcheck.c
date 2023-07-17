@@ -63,7 +63,7 @@ int fill_ram(void *start, size_t write_size, char *pattern, size_t chunk_size, i
 	if (nchannels > 4) nchannels = 4;
 	if (nchannels < 1) nchannels = 1;
 
-	size_t chunks_to_fill = write_size / chunk_size; // if write_size % 256 != 0 ignore
+	size_t chunks_to_fill = write_size / chunk_size; 
 	pdma_chann_t channels[4];
 	size_t channel_offset = chunks_to_fill / nchannels;
 	size_t chunks_for_channel[4] = {};
