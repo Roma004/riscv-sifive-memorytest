@@ -10,8 +10,10 @@ OUTPUT_ARCH(riscv)
 /* need to control RAM configuration */
 MEMORY
 {
-  /* qemu-system-risc64 sifive_u machine */
-  RAM (rwx)  : ORIGIN = 0x80000000, LENGTH = 128M
+  /* RAM reserved for memory test */
+  ram_to_use(rwx)  : ORIGIN = 0x80000000, LENGTH = 8M
+  /* RAM reserved for executable sections */
+  ram_to_test(rwx) : ORIGIN = 0x80800000, LENGTH = 120M
 }
 
 ENTRY(_start)
@@ -20,9 +22,8 @@ SECTIONS
 {
   /* Read-only sections, merged into text segment: */
   PROVIDE (__executable_start = SEGMENT_START("text-segment", 0x10000)); . = SEGMENT_START("text-segment", 0x10000) + SIZEOF_HEADERS;
-  PROVIDE (__stack_top = ORIGIN(RAM) + LENGTH(RAM));
-  PROVIDE (__ram_origin = ORIGIN(RAM));
-  PROVIDE (__ram_length = LENGTH(RAM));
+  PROVIDE (__stack_top = ORIGIN(ram_to_use) + LENGTH(ram_to_use));
+  PROVIDE (__ram_origin = ORIGIN(ram_to_test));
   PROVIDE (__uart_base_addr = 0x10010000);
   PROVIDE (__pdma_base_addr = 0x3000000);
   .interp         : { *(.interp) }

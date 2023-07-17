@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include "bitarray.h"
 
+
 void addr_to_string(char *str, size_t addr) {
 	char *s = str;
 	char buf[16] = {};
@@ -31,12 +32,13 @@ void print_ram_info(
 	if (chunks_per_line < 32) chunks_per_line = 32;
 
 	int lines_total = (nchunks + chunks_per_line - 1) / chunks_per_line;
+	int chunks_left = nchunks;
 
 	for (int line_n = 0; line_n < lines_total; line_n++) {
 		char line_buffer[151];
 		int i = 0;
 		line_buffer[i++] = '|';
-		for (int k = 0; k < chunks_per_line; ++k) {
+		for (int k = 0; k < chunks_per_line && k < chunks_left; ++k) {
 			char val = bitarray_get(arr, k);
 
 			if (val < 0)       line_buffer[i++] = ' ';
@@ -44,10 +46,11 @@ void print_ram_info(
 			else               line_buffer[i++] = '+';
 		}
 		line_buffer[i++] = '|'; line_buffer[i++] = ' ';
-		addr_to_string(line_buffer + i, (size_t)start_addres + chunks_per_line*chunk_size);
+		addr_to_string(line_buffer + i, ((size_t)start_addres) + chunks_per_line*chunk_size);
 		line_buffer[i++] = '\n';
 		line_buffer[i++] = '\0';
 		uart_puts(uart, line_buffer);
+		chunks_left -= chunks_per_line;
 	}
 }
 
@@ -129,9 +132,10 @@ void check_ram(void* start, size_t nbytes, size_t chunk_size, uint64_t pattern) 
 #define READ_CHUNK_SIZE 8
 
 // 1M reserved for code stack
-#define RAM_LENGTH 127*MBYTE
-#define N_WRITE_CHUNKS (RAM_LENGTH - 4*1024) / WRITE_CHUNK_SIZE
-#define N_READ_CHUNKS  (RAM_LENGTH - 4*1024) / READ_CHUNK_SIZE
+#define RAM_LENGTH 1*KBYTE
+// #define RAM_LENGTH 127*MBYTE
+#define N_WRITE_CHUNKS RAM_LENGTH / WRITE_CHUNK_SIZE
+#define N_READ_CHUNKS  RAM_LENGTH / READ_CHUNK_SIZE
 
 
 int main() {
@@ -139,8 +143,6 @@ int main() {
 
 	DECLARE_BIT_ARRAY(chunks_write_info, N_WRITE_CHUNKS);
 	DECLARE_BIT_ARRAY(chunks_read_info, N_READ_CHUNKS);
-	bitarray_clear(chunks_write_info, N_WRITE_CHUNKS);
-	bitarray_clear(chunks_read_info, N_READ_CHUNKS);
 
 	uart_t uart = uart_init(UART0_BASE_ADDR);
 	#define print(str) uart_puts(&uart, str)

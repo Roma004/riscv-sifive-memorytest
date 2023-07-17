@@ -17,7 +17,7 @@ struct __bitarr_chunk {
 
 typedef struct __bitarr_chunk *bitarray_t;
 
-#define DECLARE_BIT_ARRAY(name, nels) struct __bitarr_chunk name[(nels + 7) / 8]
+#define DECLARE_BIT_ARRAY(name, nels) struct __bitarr_chunk name[(nels + 7) / 8] = {}
 #define BITARRAY_SET(arr, index, bit_id, val) arr[index].bit##bit_id = val & 0x1
 #define BITARRAY_GET(arr, index, bit_id) (arr[index].bit##bit_id)
 

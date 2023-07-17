@@ -8,6 +8,7 @@ INCLUDE_DIR = ./include
 SRC_DIR = ./src
 OUTPUT = ./output/asd
 
+# LD_FILE = test.ld
 LD_FILE = 64bit-main.ld
 ASM_FILES = crt0.s
 C_FILES = main.c $(SRC_DIR)/*.c
@@ -30,7 +31,7 @@ build:
 
 .PHONY: build-debug
 build-debug:
-	$(CC) $(C_FALGS) $(LD_FLAGS) -I$(INCLUDE_DIR) $(ASM_FILES) $(C_FILES) -o $(OUTPUT) -g3 -O2
+	$(CC) $(C_FALGS) $(LD_FLAGS) -I$(INCLUDE_DIR) $(ASM_FILES) $(C_FILES) -o $(OUTPUT) -g3 -O0
 
 
 .PHONY: qemu
