@@ -15,14 +15,25 @@ struct __bitarr_chunk {
     uint8_t bit7 : 1;
 };
 
-typedef struct __bitarr_chunk *bitarray_t;
+typedef struct __bitarray {
+    struct __bitarr_chunk *arr;
+    size_t len;
+    size_t nbytes;
+} bitarray_t;
 
-#define DECLARE_BIT_ARRAY(name, nels) struct __bitarr_chunk name[(nels + 7) / 8] = {}
-#define BITARRAY_SET(arr, index, bit_id, val) arr[index].bit##bit_id = val & 0x1
-#define BITARRAY_GET(arr, index, bit_id) (arr[index].bit##bit_id)
+#define bitarr_chunk_size (sizeof(struct __bitarr_chunk) * 8)
 
-void bitarray_set(bitarray_t arr, size_t index, char val);
-char bitarray_get(bitarray_t arr, size_t index);
-void bitarray_clear(bitarray_t arr, size_t len);
+// need this to prevent from large data copy
+// as we cant use heap, need to declare that way
+#define DECLARE_BIT_ARRAY(name, nels) \
+struct __bitarr_chunk __bitarr##name = {}; \
+bitarray_t name = { \
+    .arr = &__bitarr##name, \
+    .len = nels, \
+    .nbytes = (nels + bitarr_chunk_size - 1) / bitarr_chunk_size \
+};
+
+void bitarray_set(bitarray_t *arr, size_t index, char val);
+int bitarray_get(bitarray_t *arr, size_t index);
 
 #endif

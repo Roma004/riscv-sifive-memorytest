@@ -4,150 +4,54 @@
 #include <stddef.h>
 #include <stdint.h>
 #include "bitarray.h"
+#include "memcheck.h"
 
 
-void addr_to_string(char *str, size_t addr) {
-	char *s = str;
-	char buf[16] = {};
-	*s++ = '0'; *s++ = 'x';
-
-	size_t val = addr;
-	int i = 0;
-	while (val) {
-		buf[i++] = val % 16;
-		val /= 16;
-	}
-	for (int i = 15; i > 0; --i) s[15-i] = buf[i];
-}
-
-void print_ram_info(
-	uart_t *uart,
-	bitarray_t arr,
-	size_t nchunks,
-	unsigned int chunks_per_line,
-	void *start_addres,
-	size_t chunk_size
-) {
-	if (chunks_per_line > 128) chunks_per_line = 128;
-	if (chunks_per_line < 32) chunks_per_line = 32;
-
-	int lines_total = (nchunks + chunks_per_line - 1) / chunks_per_line;
-	int chunks_left = nchunks;
-
-	for (int line_n = 0; line_n < lines_total; line_n++) {
-		char line_buffer[151];
-		int i = 0;
-		line_buffer[i++] = '|';
-		for (int k = 0; k < chunks_per_line && k < chunks_left; ++k) {
-			char val = bitarray_get(arr, k);
-
-			if (val < 0)       line_buffer[i++] = ' ';
-			else if (val == 0) line_buffer[i++] = '-';
-			else               line_buffer[i++] = '+';
-		}
-		line_buffer[i++] = '|'; line_buffer[i++] = ' ';
-		addr_to_string(line_buffer + i, ((size_t)start_addres) + chunks_per_line*chunk_size);
-		line_buffer[i++] = '\n';
-		line_buffer[i++] = '\0';
-		uart_puts(uart, line_buffer);
-		chunks_left -= chunks_per_line;
-	}
-}
-
-
-int fill_ram(void *start, size_t write_size, char *pattern, size_t chunk_size, int nchannels, bitarray_t chunks_map) {
-	if (nchannels > 4) nchannels = 4;
-	if (nchannels < 1) nchannels = 1;
-
-	size_t chunks_to_fill = write_size / chunk_size; // if write_size % 256 != 0 ignore
-	pdma_chann_t channels[4];
-	size_t channel_offset = chunks_to_fill / nchannels;
-	size_t chunks_for_channel[4] = {};
-
-	for (int i = 0; i < nchannels; i++) {
-		channels[i] = pdma_init(PDMA_BASE_ADDR, i);
-
-		pdma_chann_t *tmp = &channels[i];
-		if (!pdma_claim(tmp)) {
-			--nchannels;
-			continue;
-		}
-
-		tmp->next_config.conf = PDMA_FULL_SPEED;
-		tmp->next_config.nbytes = chunk_size;
-		tmp->next_config.read_ptr = (uint64_t)pattern;
-		tmp->next_config.write_ptr = (uint64_t)start + i*channel_offset;
-
-		chunks_for_channel[i] = channel_offset;
-	}
-
-	if (nchannels < 1) return -1;
-
-	// if has 1-3 chunks of reminder, give it to the last channel
-	if (chunks_to_fill % nchannels != 0) {
-		chunks_for_channel[nchannels-1] += chunks_to_fill - (chunks_to_fill * nchannels);
-	}
-
-	while (chunks_for_channel[0] || chunks_for_channel[1] || chunks_for_channel[2] || chunks_for_channel[3]) {
-		for (int i = 0; i < nchannels; ++i) {
-			if (!chunks_for_channel[i]) continue;
-
-			pdma_control_get(&channels[i]);
-			if (channels[i].control.run) continue;
-
-			bitarray_set(chunks_map, channel_offset - chunks_for_channel[i], !channels[i].control.error);
-
-			channels[i].control.run = 1;
-			pdma_config_write_next(&channels[i]);
-			pdma_control_write(&channels[i]);
-
-			chunks_for_channel[i]--;
-
-			channels[i].next_config.write_ptr += chunk_size;
-		}
-	} 
-
-	return 0;
-}
-
-int g_has_errors = 0;
-
-void check_ram(void* start, size_t nbytes, size_t chunk_size, uint64_t pattern) {
-	nbytes -= nbytes % chunk_size;
-	
-	uint64_t *end = (uint64_t *)(start + nbytes);
-	for (uint64_t *ptr = start; ptr != end; ++ptr) {
-		if ((*ptr & ~pattern) != 0) {
-			// TODO analyze this 8 bytes
-			g_has_errors = 1;
-		}
-	}
-}
-
-#define KBYTE 1024
+#define KBYTE 1024U
 #define MBYTE KBYTE*KBYTE
 
 
-#define WRITE_CHUNK_SIZE 64
-#define READ_CHUNK_SIZE 8
+// #define WRITE_CHUNK_SIZE 512
+#define WRITE_CHUNK_SIZE 1*KBYTE
 
-// 1M reserved for code stack
-#define RAM_LENGTH 1*KBYTE
-// #define RAM_LENGTH 127*MBYTE
-#define N_WRITE_CHUNKS RAM_LENGTH / WRITE_CHUNK_SIZE
-#define N_READ_CHUNKS  RAM_LENGTH / READ_CHUNK_SIZE
+
+// 8M reserved for ELF
+#define RAM_LENGTH 120*MBYTE
+
+#define RANGES_PER_LINE 6
+#define MAX_RANGES_NUMBER 128
+
+#define MEMCHECK_PATTERN 0x5555555555555555
 
 
 int main() {
-	char write_buffer[WRITE_CHUNK_SIZE] = "U1UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU";
+	// change some U characters to what ever you want to see `check_ram` logs
+	char write_buffer[WRITE_CHUNK_SIZE] = "UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU"
+	                                      "UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU"
+	                                      "UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU"
+	                                      "UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU"
+	                                      "UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU"
+	                                      "UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU"
+	                                      "UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU"
+	                                      "UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU"
+	                                      "UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU"
+	                                      "UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU"
+	                                      "UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU"
+	                                      "UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU"
+	                                      "UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU"
+	                                      "UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU"
+	                                      "UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU"
+	                                      "UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU";
 
-	DECLARE_BIT_ARRAY(chunks_write_info, N_WRITE_CHUNKS);
-	DECLARE_BIT_ARRAY(chunks_read_info, N_READ_CHUNKS);
+	memcheck_metrics_declare(write_metrics, MAX_RANGES_NUMBER)
+	memcheck_metrics_declare(read_metrics, MAX_RANGES_NUMBER)
 
 	uart_t uart = uart_init(UART0_BASE_ADDR);
 	#define print(str) uart_puts(&uart, str)
 
-	print("Start filling RAM\n");
+	print("Program MEMCHECK start\n");
+
+	print("Start filling RAM with predefined pattern\n\n");
 	
 	if (fill_ram(
 		RAM_ORIGIN,
@@ -155,25 +59,34 @@ int main() {
 		write_buffer,
 		WRITE_CHUNK_SIZE,
 		4,
-		chunks_write_info
+		&write_metrics
 	) != 0) {
 		print("ERORR. Can't claim any DMA channel\n");
 		return 1;
 	} else {
-		print("Ram filled with pattern\n");
-		print("Chanks map of ram filled (write errors marked as '-')\n");
-		print_ram_info(&uart, chunks_write_info, N_WRITE_CHUNKS, 64, RAM_ORIGIN, WRITE_CHUNK_SIZE);
+		print("Ram filled with pattern\n\n");
+		memcheck_metrics_report_print(&uart, "DMA RAM filling", &write_metrics, RANGES_PER_LINE);
 	}
 	
-	check_ram(RAM_ORIGIN, 4*128, 64, 0x5555555555555555);
-	print("check result is: ");
+	print("\nRun post-write errors checking\n");
+	check_ram(RAM_ORIGIN, RAM_LENGTH, WRITE_CHUNK_SIZE, MEMCHECK_PATTERN, &read_metrics);
 
-	if (g_has_errors) {
-		print("'error'");
+	memcheck_metrics_report_print(&uart, "Post-write Memory check with CPU", &read_metrics, RANGES_PER_LINE);
+	print("\n");
+
+	if (read_metrics.total_ranges_found == 0 && write_metrics.total_ranges_found == 0) {
+		print("All test passed! No r/w RAM erorrs found.\n");
+		
 	} else {
-		print("'ok'");
-	}
-	print("!\n");
+		if (write_metrics.total_ranges_found != 0) {
+			print("Some DMA writes failes (see logs abow)!\n");
+		}
+		if (read_metrics.total_ranges_found != 0) {
+			print("Some bytes've been written incorrectly (see logs abow)!\n");
+		}
+	} 
+
+	print("Program MEMCHECK exit.\n");
 
 	#undef print
 

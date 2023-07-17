@@ -1,1 +1,2 @@
-output/asd
+output/
+!output/.gitkeep

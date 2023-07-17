@@ -1,28 +1,73 @@
-# Used Resources
-
-* [guide of setting up environment for risc-v + UART](https://twilco.github.io/riscv-from-scratch/2019/04/27/riscv-from-scratch-2.html)
-* [simle lib in rust, implementing UART driver](https://github.com/diodesign/mmio_sifive_uart/blob/main/src/lib.rs)
-* [RISC-V cross compiler (elf ubuntu gcc)](https://github.com/riscv-collab/riscv-gnu-toolchain/releases/tag/2023.07.07)
-* [sifive official sdk (metal drivers)](https://github.com/sifive/freedom-metal/tree/1cec4a23a7ed7350db79a392be65acd51acd5412)
-
-# Potential needed (area for usefull links)
-
-https://www.kernelconfig.io/config_sf_pdma (dma driver imp for linux sifive)
-
-https://starfivetech.com/uploads/fu540-c000-manual-v1p4.pdf (fu540-c000 specs -- section 12)
-
 # Настройка проекта
 
-Используется вот этот Компилятор:
+## Кросс-Компилятор
 
-[RISC-V cross compiler (elf ubuntu gcc)](https://github.com/riscv-collab/riscv-gnu-toolchain/releases/tag/2023.07.07)
+для сборки компилятора использовался [данный репозиторий](https://github.com/riscv-collab/riscv-gnu-toolchain)
 
-Для сборки/запуска надо изменить переменную RISCV_CROSS_BIN в Makefile (указать путь установки кросскомпилятора)
+строка конфигурации:
 
 ```
-make biuld # сборка
+./configure --prefix=../riscv-gcc-crosscompiler64 --with-arch=rv64ima --with-abi=lp64 --with-multilib-generator="rv64ima-lp64--f*c" --disable-linux -j$(nprocs)
+```
+
+## Редактирование Makefile
+
+Для сборки/запуска надо изменить переменную `RISCV_CROSS_BIN` в Makefile (указать путь установки кросскомпилятора). Пример:
+
+```
+RISCV_CROSS_BIN = ../riscv-gcc-crosscompiler64/bin
+```
+
+Дальнейших изменений не требуется
+
+## Запуск / отладка проекта
+
+Доступные точки входа Makefile
+
+```
+make biuld       # сборка
 make build-debug # сборка с отладочной информацией
-make qemu # запуск в qemu 
-make qemu-debug # запуск в qemu в режиме отладки
-make debug # запуск gdb для подключения к активной сессии qemu
+make qemu        # запуск в qemu 
+make qemu-debug  # запуск в qemu в режиме отладки
+make debug       # запуск gdb для подключения к активной сессии qemu
+make dump-dts    # получение dts конфига устройств
 ```
+
+Пример запуска без отладчика: `make build && make qemu`
+
+Пример запуска в режиме отладки `make build-debug && make qemu-debug`. В соседней сессии терминала: `make debug`
+
+# Настройка параметров приложения
+
+## Количество доступной оперативной памяти
+
+* В MakeFile У переменной `QEMU_FLAGS` изменить 128M на необходимое кол-во
+* В 64-bit-main.ld изменить параметры `ram_to_use` (кол-во опреативы, отведённой под исполняемый файл) и `ram_to_test` (кол-во опреативы, отведённой под заполнение и проверку)
+* В main.c изменить значение макроса `RAM_LENGTH` (кол-во оперативы под заполнение паттерном).
+
+## Параметры формата отчёта, выводимого в UART
+
+* В main.c объявлены макросы, задающие основные параметры вывода на экран. Можно изменить размер чанка, длину / ширину списка битых адресов и т.д.
+
+## Моделирование ситуации с ошибкой
+
+Это может пригодиться для тестирования решения на машине без проблем с оперативной памятью (как, на пример, текущая виртуальная машина). Это нужно только чтобы показать формат вывода данных в UART
+
+* получить пример выявления ошибок при проверки данны через CPU (см коммент к `char write_buffer` в `main.c`). если заменить один из символов U на что-то ещё, то выведется таблица с диапазонами адресов, где была обнаружена эта лишняя единица. Тест показывает потенциально битые байты.
+* получить пример выявления ошибок при записи по определённому адресу через DMA (см коммент в `int fill_ram()`  -- `src/memcheck.c`). Если раскомментировать приложенный код, мы искуственно добавляем флаг ошибки записи к некоторым из чанков, записываемым каналом №2. Тем самым спровацируем вывод таблицы с диапазоном адресов, куда запись якобы не удалась.
+
+# Дополнительно
+
+## Полезные ссылки (что пригодилось в проекте)
+
+* [цикл статей для новичков по написанию кода под riscv](https://twilco.github.io/riscv-from-scratch/2019/04/27/riscv-from-scratch-2.html)
+* [код минимального uart0 драйвера на RUST](https://github.com/diodesign/mmio_sifive_uart/blob/main/src/lib.rs)
+* [реализация PDMA драйвера под линукс](https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/tree/drivers/dma/sf-pdma/sf-pdma.c?h=v6.3.12)
+* [заголовочный файл этой реализации](https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/tree/drivers/dma/sf-pdma/sf-pdma.h?h=v6.3.12)
+* [RISC-V GNU Compiler Toolchain](https://github.com/riscv-collab/riscv-gnu-toolchain)
+
+## Мои заметки о реализации данного проекта 
+
+По ходу разбирательства в теме и реализации прилодения я оставлял заметки касательно того, что я узнал / что думамю по поводу всего этого. Оставлю их тут на всякий случай. Там в том числе разъясняется, почему я принимал те или иные концептуальные решения (только архитектурно значимые, разумеется).
+
+[заметки тут](./md/WorkingProcess.md)

@@ -6,7 +6,12 @@ GDB = $(RISCV_CROSS_BIN)/riscv64-unknown-elf-gdb
 
 INCLUDE_DIR = ./include
 SRC_DIR = ./src
-OUTPUT = ./output/asd
+OUTPUT_DIR = ./output
+
+
+OUTPUT = $(OUTPUT_DIR)/memcheck.elf
+DTB_OUTPUT = $(OUTPUT_DIR)/riscv64-sifive_u.dtb
+DTS_OUTPUT = $(OUTPUT_DIR)/riscv64-sifive_u.dts
 
 # LD_FILE = test.ld
 LD_FILE = 64bit-main.ld
@@ -47,3 +52,8 @@ qemu-debug:
 .PHONY: debug
 debug:
 	$(GDB) $(OUTPUT) -ex "target remote localhost:$(DEBUG_PORT)" 
+
+.PHONY: dump-dts
+dump-dts:
+	$(QEMU) $(QEMU_FLAGS) -machine dumpdtb=$(DTB_OUTPUT)
+	dtc -I dtb -O dts -o $(DTS_OUTPUT) $(DTB_OUTPUT)

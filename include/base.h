@@ -22,12 +22,9 @@ typedef enum fault_t {
 extern volatile const unsigned char *__uart_base_addr;
 extern volatile const unsigned char *__pdma_base_addr;
 extern volatile const unsigned char *__ram_origin;
-// extern volatile const unsigned char *__ram_length;
 
 #define UART0_BASE_ADDR &__uart_base_addr
 #define PDMA_BASE_ADDR &__pdma_base_addr
 #define RAM_ORIGIN (void *)&__ram_origin
-// #define RAM_LENGTH (size_t)&__ram_length
-
 
 #endif
