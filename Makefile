@@ -1,4 +1,4 @@
-RISCV_CROSS_BIN = ../riscv-compiler64/bin
+RISCV_CROSS_BIN = ../riscv-gcc-crosscompiler64/bin
 
 CC = $(RISCV_CROSS_BIN)/riscv64-unknown-elf-gcc
 GDB = $(RISCV_CROSS_BIN)/riscv64-unknown-elf-gdb
@@ -12,7 +12,7 @@ LD_FILE = 64bit-main.ld
 ASM_FILES = crt0.s
 C_FILES = main.c $(SRC_DIR)/*.c
 
-C_FALGS = -ffreestanding -nostartfiles -mcmodel=medany -march=rv64gc -mabi=lp64
+C_FALGS = -ffreestanding -nostartfiles -mcmodel=medany -march=rv64ima -mabi=lp64
 
 LD_FLAGS = -Wl,-T,$(LD_FILE) -Wl,--gc-sections
 
@@ -30,7 +30,7 @@ build:
 
 .PHONY: build-debug
 build-debug:
-	$(CC) $(C_FALGS) $(LD_FLAGS) -I$(INCLUDE_DIR) $(ASM_FILES) $(C_FILES) -o $(OUTPUT) -g3 -O0
+	$(CC) $(C_FALGS) $(LD_FLAGS) -I$(INCLUDE_DIR) $(ASM_FILES) $(C_FILES) -o $(OUTPUT) -g3 -O2
 
 
 .PHONY: qemu

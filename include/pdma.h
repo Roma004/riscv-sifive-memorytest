@@ -1,3 +1,6 @@
+#ifndef PDMA_H
+#define PDMA_H
+
 #include "base.h"
 #include <stdint.h>
 
@@ -86,3 +89,5 @@ void pdma_wait_transfer(pdma_chann_t *pdma);
 // Automatically waits until prewious transfer end.
 // assumes, pdma descriptor, intialised corectly.
 void pdma_run(pdma_chann_t *pdma);
+
+#endif

@@ -23,9 +23,15 @@ char uart_is_transmit_full(uart_t *uart) {
 #pragma GCC pop_options
 
 
-void uart_init(uart_t *uart) {
-	uart_write_reg(uart, REG_TXCTRL, REG_TXCTRL_TXCNT | REG_TXCTRL_TXEN);
-	uart_write_reg(uart, REG_RXCTRL, REG_RXCTRL_RXCNT | REG_RXCTRL_RXEN);
+uart_t uart_init(void *base_addr) {
+	uart_t res = {
+		.base_addr = base_addr
+	};
+	
+	uart_write_reg(&res, REG_TXCTRL, REG_TXCTRL_TXCNT | REG_TXCTRL_TXEN);
+	uart_write_reg(&res, REG_RXCTRL, REG_RXCTRL_RXCNT | REG_RXCTRL_RXEN);
+
+	return res;
 }
 
 

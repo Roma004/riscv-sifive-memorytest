@@ -32,7 +32,7 @@ typedef struct UART {
 } uart_t;
 
 
-void uart_init(uart_t *uart);
+uart_t uart_init(void *base_addr);
 void uart_write_reg(uart_t *uart, size_t reg, uint32_t val);
 uint32_t uart_read_reg(uart_t *uart, size_t reg);
 char uart_is_transmit_full(uart_t *uart);
