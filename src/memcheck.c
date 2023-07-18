@@ -103,6 +103,7 @@ int fill_ram(void *start, size_t write_size, char *pattern, size_t chunk_size, i
 			pdma_control_get(&channels[i]);
 			if (channels[i].control.run) continue;
 
+            // Need only for test purposes
 			// synthetic case of error. Uncomment to see some DMA write errors
 			// if (i == 2) {
             //     if (asd % 128 < 28) {

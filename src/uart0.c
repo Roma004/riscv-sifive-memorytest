@@ -42,7 +42,6 @@ uart_t uart_init(void *base_addr) {
 
 	return res;
 }
-
 		
 void uart_puts(uart_t *uart, char *str) {
 	for (char *s = str; *s != 0; ++s) {
