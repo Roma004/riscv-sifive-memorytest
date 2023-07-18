@@ -65,8 +65,9 @@ make dump-dts    # получение dts конфига устройств
 * [реализация PDMA драйвера под линукс](https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/tree/drivers/dma/sf-pdma/sf-pdma.c?h=v6.3.12)
 * [заголовочный файл этой реализации](https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/tree/drivers/dma/sf-pdma/sf-pdma.h?h=v6.3.12)
 * [RISC-V GNU Compiler Toolchain](https://github.com/riscv-collab/riscv-gnu-toolchain)
+* [SiFive FU540-C000 Manual](https://starfivetech.com/uploads/fu540-c000-manual-v1p4.pdf)
 
-## Мои заметки о реализации данного проекта 
+## Мои заметки о реализации данного проекта
 
 По ходу разбирательства в теме и реализации прилодения я оставлял заметки касательно того, что я узнал / что думамю по поводу всего этого. Оставлю их тут на всякий случай. Там в том числе разъясняется, почему я принимал те или иные концептуальные решения (только архитектурно значимые, разумеется).
 
