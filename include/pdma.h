@@ -29,7 +29,7 @@ typedef struct __pdma_control {
     uint16_t :       11;
     uint8_t doneIe:  1; // 13 bit
     uint8_t errorIe: 1; // 14 bit
-    uint16_t :       15;   
+    uint16_t :       15;
     uint8_t done:    1; // 30 bit
     uint8_t error:   1; // 31 bit
 } pdma_control_t;
@@ -47,8 +47,8 @@ typedef struct __pdma_chain_descriptor {
     int chan_id;
 
     pdma_control_t control;
-    pdma_conf_t next_config;    
-    pdma_conf_t curr_config;    
+    pdma_conf_t next_config;
+    pdma_conf_t curr_config;
 } pdma_chann_t;
 
 pdma_chann_t pdma_init(void *base_addr, int chan_id);

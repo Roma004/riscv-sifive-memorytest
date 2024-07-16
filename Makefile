@@ -26,12 +26,12 @@ DEBUG_PORT = 1234
 
 QEMU = qemu-system-riscv64
 QEMU_DEBUG_OPTIONS = -gdb tcp::$(DEBUG_PORT) -S
-QEMU_FLAGS = -nographic -machine sifive_u -bios none -kernel $(OUTPUT) -m 128M
+QEMU_FLAGS = -nographic -machine sifive_u -bios none -m 128M
 
 
 .PHONY: build
 build:
-	$(CC) $(C_FALGS) $(LD_FLAGS) -I$(INCLUDE_DIR) $(ASM_FILES) $(C_FILES) -o $(OUTPUT) -O2
+	$(CC) $(C_FALGS) $(LD_FLAGS) -I$(INCLUDE_DIR) $(ASM_FILES) $(C_FILES) -o $(OUTPUT) -O0
 
 
 .PHONY: build-debug
@@ -41,17 +41,17 @@ build-debug:
 
 .PHONY: qemu
 qemu:
-	$(QEMU) $(QEMU_FLAGS)
+	$(QEMU) $(QEMU_FLAGS) -kernel $(OUTPUT)
 
 
 .PHONY: qemu-debug
 qemu-debug:
-	$(QEMU) $(QEMU_FLAGS) $(QEMU_DEBUG_OPTIONS) 
+	$(QEMU) $(QEMU_FLAGS) $(QEMU_DEBUG_OPTIONS) -kernel $(OUTPUT)
 
 
 .PHONY: debug
 debug:
-	$(GDB) $(OUTPUT) -ex "target remote localhost:$(DEBUG_PORT)" 
+	$(GDB) $(OUTPUT) -ex "target remote localhost:$(DEBUG_PORT)"
 
 .PHONY: dump-dts
 dump-dts:

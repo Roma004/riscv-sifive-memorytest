@@ -2,7 +2,7 @@
 #define UART0_H
 
 /* registers in the controller and their offsets */
-#define REG_TXDATA (0 * 4) /* transmit data register */ 
+#define REG_TXDATA (0 * 4) /* transmit data register */
 #define REG_RXDATA (1 * 4) /* receive data register */
 #define REG_TXCTRL (2 * 4) /* transmit control register */
 #define REG_RXCTRL (3 * 4) /* receive control register */

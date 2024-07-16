@@ -73,20 +73,20 @@ void pdma_config_write_next(pdma_chann_t *pdma) {
 
 char pdma_claim(pdma_chann_t *pdma) {
     pdma_control_get(pdma); // refresh current control register state
-    if (pdma->control.run) 
+    if (pdma->control.run)
         return 0;
-    
+
     pdma->control.claim = 1;
     pdma_control_write(pdma);
-    
+
     return 1;
 }
 
 void pdma_unclaim(pdma_chann_t *pdma) {
     pdma_wait_transfer(pdma);
-    
+
     pdma->control.claim = 0;
-    pdma_control_write(pdma);   
+    pdma_control_write(pdma);
 }
 
 

@@ -42,7 +42,7 @@ SECTIONS
 
   /* need for global pointer relaxations */
   __global_pointer$ = MAX(__DATA_BEGIN__ + 0x800, __BSS_END__ - 0x800);
-    
+
   . = DATA_SEGMENT_END (.);
 
   /* DWARF 2 debug sections. */
